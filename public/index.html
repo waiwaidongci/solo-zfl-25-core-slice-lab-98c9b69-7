@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>岩芯切片制备批次台</title>
+<style>
+  :root { --bg:#eef1ea; --panel:#fff; --ink:#232821; --muted:#6a7263; --line:#d6dcd0; --accent:#4d6b3f; --accent-d:#3c5531; --danger:#a63d3d; --warn:#b3731a; --blue:#345e7a; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:"PingFang SC","Microsoft YaHei",Arial,sans-serif; font-size:14px; }
+  header { padding:16px 26px; background:#fff; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap; }
+  h1 { margin:0; font-size:21px; } h2 { margin:0 0 12px; font-size:16px; } h3 { margin:0; font-size:15px; }
+  .sub { color:var(--muted); font-size:12.5px; margin-top:3px; }
+  nav { display:flex; gap:6px; }
+  nav button { border:1px solid var(--line); background:#fafbf8; color:var(--ink); border-radius:6px; padding:8px 16px; font-weight:600; cursor:pointer; }
+  nav button.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+  main { padding:20px 26px; max-width:1280px; margin:0 auto; }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:18px; margin-bottom:18px; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .grid3 { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+  label { display:block; margin:9px 0 4px; color:var(--muted); font-size:12.5px; }
+  input,select,textarea { width:100%; border:1px solid var(--line); border-radius:6px; padding:8px 9px; font:inherit; background:#fff; }
+  textarea { min-height:56px; resize:vertical; }
+  button.act { border:0; border-radius:6px; background:var(--accent); color:#fff; padding:9px 16px; font-weight:700; cursor:pointer; }
+  button.act:hover { background:var(--accent-d); }
+  button.ghost { border:1px solid var(--line); background:#fff; border-radius:6px; padding:7px 12px; cursor:pointer; font-weight:600; }
+  button.mini { border:0; border-radius:5px; padding:5px 10px; font-size:12.5px; font-weight:700; cursor:pointer; }
+  button.adv { background:var(--accent); color:#fff; }
+  button.obs { background:var(--blue); color:#fff; }
+  button.del { background:#7a6252; color:#fff; }
+  button.def { background:#fff; color:var(--warn); border:1px solid var(--warn); }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; }
+  .row > div { flex:1; min-width:130px; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th,td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--muted); font-weight:600; background:#fafbf8; position:sticky; top:0; }
+  .pill { display:inline-block; border:1px solid var(--line); border-radius:999px; padding:2px 9px; font-size:12px; white-space:nowrap; }
+  .pill.stage { background:#eef3e9; border-color:#c3d2b6; color:var(--accent-d); }
+  .pill.done { background:#e9eef2; border-color:#c2d0da; color:var(--blue); }
+  .pill.warn { background:#fdf3e3; border-color:#e3c48d; color:var(--warn); }
+  .pill.bad { background:#f8e7e7; border-color:#dca9a9; color:var(--danger); }
+  .stat { background:#fff; border:1px solid var(--line); border-radius:8px; padding:12px 14px; min-width:120px; }
+  .stat b { font-size:22px; display:block; }
+  .stat span { color:var(--muted); font-size:12px; }
+  .stat.alert b { color:var(--danger); }
+  .progress { height:9px; background:#e6eae1; border-radius:99px; overflow:hidden; margin:6px 0; }
+  .progress > i { display:block; height:100%; background:var(--accent); border-radius:99px; }
+  .meta { color:var(--muted); font-size:12.5px; }
+  .slice-card { border:1px solid var(--line); border-radius:8px; padding:12px; background:#fdfdfb; }
+  .slice-card.overdue { border-color:#dca9a9; background:#fdf7f7; }
+  .steps { display:flex; gap:3px; margin:8px 0; flex-wrap:wrap; }
+  .steps span { font-size:11px; padding:2px 7px; border-radius:4px; background:#e9ede5; color:var(--muted); }
+  .steps span.on { background:var(--accent); color:#fff; }
+  .steps span.passed { background:#cddcc3; color:var(--accent-d); }
+  .steps i { font-style:normal; color:var(--muted); font-size:11px; line-height:18px; }
+  .tagline { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:6px; }
+  .msg { margin-top:10px; font-size:13px; display:none; padding:9px 12px; border-radius:6px; }
+  .msg.ok { display:block; background:#edf4e7; color:var(--accent-d); }
+  .msg.err { display:block; background:#f8e7e7; color:var(--danger); }
+  dialog { border:1px solid var(--line); border-radius:10px; padding:0; width:460px; max-width:92vw; }
+  dialog::backdrop { background:rgba(30,35,28,.4); }
+  .dlg-body { padding:18px; }
+  .dlg-foot { display:flex; justify-content:flex-end; gap:10px; padding:0 18px 16px; }
+  .audits { max-height:560px; overflow:auto; }
+  .reject { color:var(--danger); font-weight:600; }
+  details summary { cursor:pointer; font-weight:600; margin:4px 0; }
+  .empty { color:var(--muted); padding:18px; text-align:center; }
+  #operatorBar { display:flex; align-items:center; gap:8px; }
+  #operatorBar input { width:120px; }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>岩芯切片制备批次台</h1>
+    <div class="sub">地质实验室 · 切片岗 · 取样 → 切割 → 研磨 → 染色 → 观察 → 交付</div>
+  </div>
+  <div id="operatorBar">
+    <span class="meta">当前操作人</span>
+    <input id="operator" placeholder="姓名" value="陆川">
+  </div>
+  <nav>
+    <button data-tab="batches" class="active">批次台</button>
+    <button data-tab="intake">建档</button>
+    <button data-tab="audit">审计查询</button>
+  </nav>
+</header>
+
+<main>
+  <!-- ========== 批次台 ========== -->
+  <section id="tab-batches">
+    <div class="panel">
+      <div class="row" style="margin-bottom:6px">
+        <h2 style="margin:0">批次列表</h2>
+        <span style="flex:1"></span>
+        <button class="ghost" id="refreshBtn">刷新</button>
+      </div>
+      <div id="batchList"></div>
+    </div>
+  </section>
+
+  <!-- ========== 建档 ========== -->
+  <section id="tab-intake" style="display:none">
+    <div class="panel">
+      <h2>1. 录入岩芯样本</h2>
+      <form id="sampleForm">
+        <div class="grid2">
+          <div><label>项目名称 *</label><input name="project" required value="东岭铜矿薄片鉴定"></div>
+          <div><label>钻孔编号 *</label><input name="borehole" required value="ZK-17"></div>
+          <div><label>岩芯箱号 *</label><input name="coreBox" required value="BX-09"></div>
+          <div><label>取样深度 *</label><input name="depth" required value="128.4-128.8m"></div>
+          <div><label>岩性</label><input name="rockType" value="含铜矽卡岩"></div>
+          <div><label>负责人 *</label><input name="owner" required value="陆川"></div>
+        </div>
+        <div style="margin-top:12px"><button class="act" type="submit">录入样本</button></div>
+        <div class="msg" id="sampleMsg"></div>
+      </form>
+    </div>
+
+    <div class="panel">
+      <h2>2. 建立制备批次</h2>
+      <form id="batchForm">
+        <div class="row">
+          <div style="flex:2"><label>选择样本 *</label><select name="sampleId" id="batchSample"></select></div>
+          <div style="flex:1"><label>批次名称</label><input name="name" placeholder="留空自动生成"></div>
+          <div style="flex:2"><label>制片计划 / 依据</label><input name="plan" value="《岩矿制片作业规范》2026版"></div>
+          <div><label>建档人 *</label><input name="createdBy" value="陆川"></div>
+        </div>
+        <div style="margin-top:12px"><button class="act" type="submit">建立批次</button></div>
+        <div class="msg" id="batchMsg"></div>
+      </form>
+    </div>
+
+    <div class="panel">
+      <h2>3. 按批次一次建多张切片</h2>
+      <form id="sliceForm">
+        <div class="row">
+          <div style="flex:2"><label>批次 *</label><select name="batchId" id="sliceBatch"></select></div>
+          <div><label>切片数量 *</label><input name="count" type="number" min="1" max="100" value="4"></div>
+          <div style="flex:1"><label>染色方法</label><input name="stainMethod" value="茜素红-S 染色"></div>
+          <div><label>建单操作人 *</label><input name="operator" class="op" value="取样工 韩梅"></div>
+          <div style="flex:2"><label>依据 *</label><input name="basis" value="批次制片委托单 WT-2026-017"></div>
+        </div>
+        <div class="meta" style="margin-top:8px">切片进入「取样」工序，编号自动生成（SL-xxxx），命名为 切片1…切片N，可在批次页逐张登记缺陷与推进。</div>
+        <div style="margin-top:10px"><button class="act" type="submit">批量添加切片</button></div>
+        <div class="msg" id="sliceMsg"></div>
+      </form>
+    </div>
+  </section>
+
+  <!-- ========== 审计查询 ========== -->
+  <section id="tab-audit" style="display:none">
+    <div class="panel">
+      <h2>操作审计台账</h2>
+      <div class="row">
+        <div><label>操作类型</label><select id="fType">
+          <option value="">全部</option>
+          <option value="advance">推进</option>
+          <option value="observe">观察</option>
+          <option value="deliver">交付</option>
+          <option value="slice_create">建切片</option>
+          <option value="sample_create">建样本</option>
+          <option value="batch_create">建批次</option>
+          <option value="defect_report">登记缺陷</option>
+          <option value="defect_resolve">处理缺陷</option>
+        </select></div>
+        <div><label>结果</label><select id="fResult">
+          <option value="">全部</option>
+          <option value="accepted">成功</option>
+          <option value="rejected">拒绝</option>
+        </select></div>
+        <div><label>操作人</label><input id="fOperator" placeholder="姓名"></div>
+        <div><label>切片编号</label><input id="fSlice" placeholder="SL-0001"></div>
+        <div><label>批次编号</label><input id="fBatch" placeholder="BATCH-0001"></div>
+        <div style="flex:0 0 auto"><button class="act" id="auditSearch">查询</button></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="row" style="margin-bottom:8px"><h2 style="margin:0">记录</h2><span style="flex:1"></span><span class="meta" id="auditTotal"></span></div>
+      <div class="audits">
+        <table>
+          <thead><tr><th>审计号</th><th>时间</th><th>类型</th><th>结果</th><th>操作人</th><th>依据</th><th>切片</th><th>前状态 → 后状态</th><th>说明 / 拒绝原因</th></tr></thead>
+          <tbody id="auditRows"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- 推进 / 观察 / 交付 / 缺陷 共用弹窗 -->
+<dialog id="dlg">
+  <form method="dialog" class="dlg-body" id="dlgForm">
+    <h2 id="dlgTitle">推进</h2>
+    <div id="dlgContext" class="meta" style="margin-bottom:8px"></div>
+    <div id="dlgFields"></div>
+    <div class="msg" id="dlgMsg"></div>
+  </form>
+  <div class="dlg-foot">
+    <button value="cancel" class="ghost" id="dlgCancel">取消</button>
+    <button value="ok" class="act" id="dlgOk">确认</button>
+  </div>
+</dialog>
+
+<script>
+const STAGES = __STAGES__;
+const ACTIVE_STAGES = __ACTIVE_STAGES__;
+const STAGE_OWNERS = __STAGE_OWNERS__;
+const SLA_HOURS = __SLA_HOURS__;
+const DEFECT_LEVELS = __DEFECT_LEVELS__;
+const AUDIT_TYPE_LABELS = {
+  sample_create:"建样本", batch_create:"建批次", slice_create:"建切片",
+  advance:"推进", observe:"观察", deliver:"交付",
+  defect_report:"登记缺陷", defect_resolve:"处理缺陷",
+};
+
+const $ = (s, el=document) => el.querySelector(s);
+const $$ = (s, el=document) => [...el.querySelectorAll(s)];
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = iso => iso ? new Date(iso).toLocaleString("zh-CN", { hour12:false }) : "";
+// HTTP 头不允许非 ASCII，幂等键对请求要素做稳定哈希，保证同一推进请求重复/并发提交命中同一结果
+function idemKey(parts) {
+  const str = parts.filter(x => x != null).join("|");
+  let h = 5381;
+  for (let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) >>> 0;
+  return "idem-" + h.toString(36);
+}
+function msg(el, ok, text){ el.className = "msg " + (ok ? "ok" : "err"); el.textContent = text; }
+
+async function api(path, options={}) {
+  const opts = { method:options.method || "GET", headers:{...(options.headers||{})} };
+  if (options.body) { opts.headers["Content-Type"] = "application/json"; opts.body = JSON.stringify(options.body); }
+  if (options.idempotencyKey) opts.headers["Idempotency-Key"] = options.idempotencyKey;
+  const res = await fetch(path, opts);
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const err = new Error(data.message || data.error || "请求失败");
+    err.status = res.status; err.code = data.error; err.data = data;
+    throw err;
+  }
+  data.__replayed = res.headers.get("Idempotent-Replay") === "true";
+  return data;
+}
+
+// ---------- 页签 ----------
+$$("nav button").forEach(btn => btn.onclick = () => {
+  $$("nav button").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  for (const t of ["batches","intake","audit"]) $("#tab-"+t).style.display = t === btn.dataset.tab ? "" : "none";
+  if (btn.dataset.tab === "batches") loadBatches();
+  if (btn.dataset.tab === "intake") loadIntakeSelects();
+  if (btn.dataset.tab === "audit") searchAudits();
+});
+
+// ---------- 建档 ----------
+$("#sampleForm").onsubmit = async e => {
+  e.preventDefault();
+  const f = new FormData(e.target);
+  try {
+    const out = await api("/api/samples", { method:"POST", body:Object.fromEntries(f) });
+    msg($("#sampleMsg"), true, `样本已建档：${out.sample.id}（${out.sample.project}）`);
+    e.target.reset();
+    loadIntakeSelects();
+  } catch (err) { msg($("#sampleMsg"), false, err.message); }
+};
+$("#batchForm").onsubmit = async e => {
+  e.preventDefault();
+  const f = new FormData(e.target);
+  try {
+    const out = await api("/api/batches", { method:"POST", body:Object.fromEntries(f) });
+    msg($("#batchMsg"), true, `批次已建立：${out.batch.id}`);
+    loadIntakeSelects();
+  } catch (err) { msg($("#batchMsg"), false, err.message); }
+};
+$("#sliceForm").onsubmit = async e => {
+  e.preventDefault();
+  const f = Object.fromEntries(new FormData(e.target));
+  try {
+    const out = await api(`/api/batches/${f.batchId}/slices`, {
+      method:"POST",
+      body:{ count:+f.count, stainMethod:f.stainMethod, operator:f.operator, basis:f.basis },
+      idempotencyKey:`addslices-${f.batchId}-${f.count}-${Date.now()}`
+    });
+    msg($("#sliceMsg"), true, `已加入 ${out.created.length} 张切片 → ${out.batch.id}`);
+    loadIntakeSelects();
+  } catch (err) { msg($("#sliceMsg"), false, err.message); }
+};
+async function loadIntakeSelects() {
+  const samples = await api("/api/samples");
+  const batches = await api("/api/batches");
+  $("#batchSample").innerHTML = samples.map(s => `<option value="${s.id}">${esc(s.id)} · ${esc(s.borehole)} · ${esc(s.project)}</option>`).join("") || `<option value="">（暂无样本，请先录入）</option>`;
+  $("#sliceBatch").innerHTML = batches.map(b => `<option value="${b.id}">${esc(b.id)} · ${esc(b.name)}（${b.stats.total} 张）</option>`).join("") || `<option value="">（暂无批次，请先建立）</option>`;
+}
+
+// ---------- 批次台 ----------
+async function loadBatches() {
+  const batches = await api("/api/batches");
+  const el = $("#batchList");
+  if (!batches.length) {
+    el.innerHTML = `<div class="empty">还没有批次，请先到「建档」页录入样本、建立批次并批量添加切片。</div>`;
+    return;
+  }
+  el.innerHTML = batches.map(batchCard).join("");
+  bindSliceActions();
+}
+function stagePill(stage) {
+  if (stage === "已交付") return `<span class="pill done">已交付</span>`;
+  return `<span class="pill stage">${esc(stage)}</span>`;
+}
+function batchCard(b) {
+  const overduePill = b.stats.overdueCount
+    ? `<span class="pill bad">逾期 ${b.stats.overdueCount}</span>` : "";
+  const defectPill = b.stats.openDefectCount
+    ? `<span class="pill warn">未处理缺陷 ${b.stats.openDefectCount}</span>` : "";
+  const owners = b.nextOwners.length
+    ? b.nextOwners.map(o => `${esc(o.role)}×${o.count}`).join("、")
+    : "—";
+  const overdueRows = b.overdue.length
+    ? `<details><summary class="reject">逾期项（${b.overdue.length}）</summary>
+        <table><thead><tr><th>切片</th><th>停留工序</th><th>负责人</th><th>应完成时间</th><th>逾期</th></tr></thead><tbody>
+        ${b.overdue.map(o => `<tr><td>${esc(o.sliceId)} ${esc(o.label)}</td><td>${esc(o.stage)}</td><td>${esc(o.nextOwner)}</td><td>${fmt(o.dueAt)}</td><td class="reject">${o.overdueHours}h</td></tr>`).join("")}
+        </tbody></table></details>` : "";
+  const defectRows = b.openDefects.length
+    ? `<details><summary class="pill warn" style="cursor:pointer">未处理缺陷（${b.openDefects.length}）</summary>
+        <table><thead><tr><th>缺陷号</th><th>切片</th><th>级别</th><th>描述</th><th>报告人</th><th></th></tr></thead><tbody>
+        ${b.openDefects.map(d => `<tr><td>${esc(d.id)}</td><td>${esc(d.sliceId)} ${esc(d.label)}</td><td>${esc(d.level)}</td><td>${esc(d.description)}</td><td>${esc(d.reportedBy)} ${fmt(d.reportedAt)}</td>
+          <td><button class="mini ghost" data-action="resolve-defect" data-id="${d.id}">处理</button></td></tr>`).join("")}
+        </tbody></table></details>` : "";
+  return `
+  <article class="panel" style="margin-bottom:16px">
+    <div class="tagline">
+      <h3>${esc(b.id)} · ${esc(b.name)}</h3>
+      ${stagePill(b.stats.delivered === b.stats.total && b.stats.total > 0 ? "已交付" : "进行中")}
+      ${overduePill}${defectPill}
+      <span class="meta">样本 ${esc(b.sample ? b.sample.id : b.sampleId)} · ${esc(b.sample ? b.sample.borehole : "")} · 建档人 ${esc(b.createdBy)} · ${fmt(b.createdAt)}</span>
+    </div>
+    <div class="grid3" style="margin:10px 0">
+      <div class="stat"><b>${b.stats.progress}%</b><span>总体进度（${b.stats.delivered}/${b.stats.total} 已交付）</span>
+        <div class="progress"><i style="width:${b.stats.progress}%"></i></div></div>
+      <div class="stat ${b.stats.overdueCount ? "alert":""}"><b>${b.stats.overdueCount}</b><span>逾期切片（超 SLA 未推进）</span></div>
+      <div class="stat"><b>${esc(owners)}</b><span>下一步负责人（按当前工序）</span></div>
+    </div>
+    ${overdueRows}
+    ${defectRows}
+    <div class="meta" style="margin:8px 0">制片计划：${esc(b.plan || "—")}</div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:10px">
+      ${b.slices.map(sliceCard).join("")}
+    </div>
+  </article>`;
+}
+function sliceCard(s) {
+  const curIdx = STAGES.indexOf(s.stage);
+  const steps = ACTIVE_STAGES.map((st, i) => {
+    const cls = i < curIdx ? "passed" : i === curIdx ? "on" : "";
+    return `<span class="${cls}">${st}</span>${i < ACTIVE_STAGES.length-1 ? "<i>›</i>" : ""}`;
+  }).join("");
+  const tail = s.stage === "待交付"
+    ? `<span class="pill warn">待交付（资料员）</span>`
+    : s.stage === "已交付"
+      ? `<span class="pill done">已交付 ${fmt(s.deliveredAt)}</span>`
+      : `<i>›</i><span class="${curIdx === ACTIVE_STAGES.length ? "on":""}">待交付</span>`;
+  const overdueTag = s.overdueHours != null
+    ? `<span class="pill bad">逾期 ${s.overdueHours}h</span>` : "";
+  const defTags = s.openDefectCount
+    ? `<span class="pill warn">缺陷×${s.openDefectCount}</span>` : "";
+  let actions = "";
+  if (s.stage !== "已交付") {
+    const next = STAGES[STAGES.indexOf(s.stage)+1];
+    actions = `<button class="mini adv" data-action="advance" data-id="${s.id}" data-next="${esc(next)}">推进 → ${esc(next)}</button>`;
+    if (s.stage === "观察") {
+      actions += ` <button class="mini obs" data-action="observe" data-id="${s.id}">${s.observation ? "补录观察" : "登记观察"}</button>`;
+    }
+    if (s.stage === "待交付") {
+      actions += ` <button class="mini obs" data-action="observe" data-id="${s.id}">${s.observation ? "补录观察" : "补录观察（交付前置）"}</button>
+                   <button class="mini del" data-action="deliver" data-id="${s.id}">交付</button>`;
+    }
+    actions += ` <button class="mini def" data-action="defect" data-id="${s.id}">缺陷</button>`;
+  }
+  const obs = s.observation
+    ? `<div class="meta">观察：${esc(s.observation)}（${esc(s.observedBy)}，${fmt(s.observedAt)}）</div>`
+    : (s.stage === "待交付" || STAGES.indexOf(s.stage) >= STAGES.indexOf("观察")
+        ? `<div class="meta" style="color:var(--danger)">尚未登记观察结果</div>` : "");
+  return `<div class="slice-card ${s.overdueHours != null ? "overdue":""}">
+    <div class="tagline"><b>${esc(s.id)} · ${esc(s.label)}</b>${stagePill(s.stage)}${overdueTag}${defTags}</div>
+    <div class="steps">${steps}${tail}</div>
+    <div class="meta">染色方法：${esc(s.stainMethod || "—")}　在岗：${esc(s.nextOwner || "—")}</div>
+    <div class="meta">进入工序：${fmt(s.enteredStageAt)}　应完成：${s.dueAt ? fmt(s.dueAt) : "—"}（SLA ${SLA_HOURS[s.stage] || "—"}h）</div>
+    ${obs}
+    <div style="margin-top:8px">${actions}</div>
+  </div>`;
+}
+
+function bindSliceActions() {
+  $$("[data-action]").forEach(btn => {
+    btn.onclick = () => openAction(btn.dataset.action, btn.dataset.id, btn.dataset.next || "");
+  });
+}
+
+// ---------- 通用弹窗 ----------
+let dlgState = null;
+function openDialog({title, context, fieldsHtml, onOk}) {
+  $("#dlgTitle").textContent = title;
+  $("#dlgContext").textContent = context;
+  $("#dlgFields").innerHTML = fieldsHtml;
+  $("#dlgMsg").className = "msg";
+  $("#dlgMsg").textContent = "";
+  dlgState = { onOk };
+  $("#dlg").showModal();
+}
+$("#dlgCancel").onclick = () => { $("#dlg").close(); dlgState = null; };
+$("#dlgOk").onclick = async (e) => {
+  e.preventDefault();
+  if (!dlgState) return;
+  try {
+    await dlgState.onOk();
+    $("#dlg").close();
+    dlgState = null;
+    loadBatches();
+  } catch (err) {
+    const m = $("#dlgMsg");
+    m.className = "msg err";
+    m.textContent = `失败（${err.status} ${err.code || ""}）：${err.message} —— 状态保持不变，已记入审计`;
+  }
+};
+
+async function openAction(action, sliceId, nextStage) {
+  const s = await api(`/api/slices/${sliceId}`);
+  const op = $("#operator").value.trim();
+  const commonFields = `
+    <label>操作人 *</label><input id="dOperator" value="${esc(op)}">
+    <label>依据 *（作业票 / 规程 / 委托单编号）</label><input id="dBasis" placeholder="如：切割作业票 CUT-2026-017">`;
+  if (action === "advance") {
+    const illegalHint = `<div class="meta" style="margin:6px 0">系统仅允许进入紧邻的下一工序；跳步或回退会被拒绝并保留原状态。</div>`;
+    openDialog({
+      title:`推进工序：${s.id} ${s.label}`,
+      context:`${s.stage} → ${nextStage}｜责任岗：${STAGE_OWNERS[nextStage] || ""}`,
+      fieldsHtml: commonFields + `
+        <label>目标工序（留空=下一步；用于演示跳步/回退拦截）</label>
+        <select id="dTarget"><option value="">${nextStage}（正常下一步）</option>
+          ${STAGES.filter(x => x !== nextStage).map(x => `<option>${x}</option>`).join("")}</select>
+        ${nextStage === "观察" ? `<label>观察结果（可选；进入观察工序后可在「登记观察」补录）</label><textarea id="dObs"></textarea>` : ""}
+        <label>备注</label><input id="dNote">${illegalHint}`,
+      onOk: async () => {
+        const body = { operator:$("#dOperator").value, basis:$("#dBasis").value };
+        const t = $("#dTarget").value;
+        if (t) body.targetStage = t;
+        const noteEl = $("#dNote"); if (noteEl && noteEl.value) body.note = noteEl.value;
+        const obsEl = $("#dObs"); if (obsEl && obsEl.value.trim()) body.observation = obsEl.value.trim();
+        // 客户端生成幂等键：同一推进请求重复/并发提交只生效一次
+        await api(`/api/slices/${sliceId}/advance`, {
+          method:"POST", body,
+          idempotencyKey: idemKey(["advance", sliceId, s.stage, body.basis, body.targetStage || ""])
+        });
+      }
+    });
+  } else if (action === "observe") {
+    openDialog({
+      title:`登记观察结果：${s.id} ${s.label}`,
+      context:`当前工序：${s.stage}｜责任岗：岩矿鉴定师`,
+      fieldsHtml: commonFields + `
+        <label>观察结果 *（空观察不能通过交付校验）</label>
+        <textarea id="dObservation" placeholder="镜下鉴定：矿物组成、结构构造、蚀变与矿化特征…">${esc(s.observation || "")}</textarea>`,
+      onOk: async () => {
+        await api(`/api/slices/${sliceId}/observation`, {
+          method:"POST",
+          body:{ operator:$("#dOperator").value, basis:$("#dBasis").value, observation:$("#dObservation").value },
+          idempotencyKey:`observe-${sliceId}-${Date.now()}`
+        });
+      }
+    });
+  } else if (action === "deliver") {
+    openDialog({
+      title:`交付切片：${s.id} ${s.label}`,
+      context:`当前工序：${s.stage}｜交付人：资料员｜观察结果为空时交付将被拒绝`,
+      fieldsHtml: commonFields + `
+        <div class="meta" style="margin:6px 0">${s.observation ? "已有观察记录，可交付。" : "<span style='color:var(--danger)'>该切片尚无观察记录，交付会失败并保留状态。</span>"}</div>`,
+      onOk: async () => {
+        await api(`/api/slices/${sliceId}/deliver`, {
+          method:"POST",
+          body:{ operator:$("#dOperator").value, basis:$("#dBasis").value },
+          idempotencyKey:`deliver-${sliceId}-${Date.now()}`
+        });
+      }
+    });
+  } else if (action === "defect") {
+    openDialog({
+      title:`登记缺陷：${s.id} ${s.label}`,
+      context:`当前工序：${s.stage}`,
+      fieldsHtml: commonFields + `
+        <label>级别</label><select id="dLevel">${DEFECT_LEVELS.map(l => `<option>${l}</option>`).join("")}</select>
+        <label>缺陷描述 *</label><textarea id="dDesc" placeholder="如：边缘崩缺 2mm、研磨厚度不均、染色不均…"></textarea>`,
+      onOk: async () => {
+        await api(`/api/slices/${sliceId}/defects`, {
+          method:"POST",
+          body:{ operator:$("#dOperator").value, basis:$("#dBasis").value, level:$("#dLevel").value, description:$("#dDesc").value },
+          idempotencyKey:`defect-${sliceId}-${Date.now()}`
+        });
+      }
+    });
+  } else if (action === "resolve-defect") {
+    const defects = await api("/api/defects?status=未处理");
+    const d = defects.find(x => x.id === sliceId);
+    if (!d) return;
+    openDialog({
+      title:`处理缺陷：${d.id}`,
+      context:`${d.sliceId} · [${d.level}] ${d.description}`,
+      fieldsHtml:`
+        <label>处理人 *</label><input id="dOperator" value="${esc(op)}">
+        <label>依据</label><input id="dBasis" value="缺陷返工单">
+        <label>处理说明 *</label><textarea id="dResolution" placeholder="返工措施与复检结果"></textarea>`,
+      onOk: async () => {
+        await api(`/api/defects/${d.id}/resolve`, {
+          method:"POST",
+          body:{ operator:$("#dOperator").value, basis:$("#dBasis").value, resolution:$("#dResolution").value },
+          idempotencyKey:`resolve-${d.id}-${Date.now()}`
+        });
+      }
+    });
+  }
+}
+
+// ---------- 审计 ----------
+async function searchAudits() {
+  const p = new URLSearchParams();
+  const pick = (id, key) => { const v = $(id).value.trim(); if (v) p.set(key, v); };
+  pick("#fType","type"); pick("#fResult","result"); pick("#fOperator","operator");
+  pick("#fSlice","sliceId"); pick("#fBatch","batchId");
+  p.set("limit","200");
+  const data = await api("/api/audits?" + p.toString());
+  $("#auditTotal").textContent = `共 ${data.total} 条，显示最近 ${data.items.length} 条`;
+  $("#auditRows").innerHTML = data.items.map(r => {
+    const rejected = r.result === "rejected";
+    const transition = r.fromStage || r.toStage
+      ? `${esc(r.fromStage || "—")} → ${esc(r.toStage || "—")}` : "—";
+    const note = rejected
+      ? `<span class="reject">[${esc(r.rejectCode)}] ${esc(r.rejectReason)}</span>`
+      : esc(r.note || "");
+    return `<tr>
+      <td>${esc(r.id)}</td><td>${fmt(r.at)}</td>
+      <td>${esc(AUDIT_TYPE_LABELS[r.type] || r.type)}</td>
+      <td>${rejected ? '<span class="reject">拒绝</span>' : "成功"}${r.__replayed ? "" : ""}</td>
+      <td>${esc(r.operator)}</td><td>${esc(r.basis)}</td>
+      <td>${r.sliceId ? esc(r.sliceId) + (r.label ? " " + esc(r.label) : "") : "—"}</td>
+      <td>${transition}</td><td>${note}</td>
+    </tr>`;
+  }).join("") || `<tr><td colspan="9" class="empty">无记录</td></tr>`;
+}
+$("#auditSearch").onclick = searchAudits;
+$("#refreshBtn").onclick = loadBatches;
+
+// 初始化
+loadBatches();
+</script>
+</body>
+</html>
